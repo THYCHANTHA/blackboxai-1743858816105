@@ -12,23 +12,58 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Cars Table with Version Tracking
+-- Enhanced Cars Table
 CREATE TABLE cars (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     make VARCHAR(50) NOT NULL,
     model VARCHAR(50) NOT NULL,
     year INT NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
+    price_usd DECIMAL(10,2) NOT NULL,
+    price_khr DECIMAL(12,2) NOT NULL,
     mileage INT NOT NULL,
     color VARCHAR(30),
     vin VARCHAR(17),
     description TEXT,
+    car_type ENUM('sedan','suv','truck','hatchback','coupe','convertible','van','electric','hybrid','luxury') NOT NULL,
     status ENUM('pending','approved','sold') DEFAULT 'pending',
+    view_count INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    current_version INT DEFAULT 1,
     FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Car Images Table
+CREATE TABLE car_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    car_id INT NOT NULL,
+    image_path VARCHAR(255) NOT NULL,
+    is_primary BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (car_id) REFERENCES cars(id) ON DELETE CASCADE
+);
+
+-- Car Reactions Table
+CREATE TABLE car_reactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    car_id INT NOT NULL,
+    user_id INT NOT NULL,
+    reaction_type ENUM('like','love','interested') DEFAULT 'like',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (car_id) REFERENCES cars(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY (car_id, user_id)
+);
+
+-- Car View Tracking
+CREATE TABLE car_views (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    car_id INT NOT NULL,
+    user_id INT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (car_id) REFERENCES cars(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Car Version History
